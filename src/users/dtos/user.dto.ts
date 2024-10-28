@@ -9,4 +9,8 @@ export class UserDto {
   password: string;
   @Expose()
   access_token: string;
+  @Expose()
+  email: string;
+  @Expose()
+  fullName: string;
 }

@@ -1,4 +1,11 @@
-import { Column, PrimaryGeneratedColumn, Entity, OneToMany } from 'typeorm';
+import {
+  Column,
+  PrimaryGeneratedColumn,
+  Entity,
+  OneToMany,
+  AfterInsert,
+  AfterRemove,
+} from 'typeorm';
 import { InvoiceDetailEntity } from './invoiceDetail.entity';
 
 @Entity('invoices')
@@ -14,4 +21,14 @@ export class InvoiceEntity {
     (invoiceDetail) => invoiceDetail.invoice,
   )
   invoiceDetails: InvoiceDetailEntity[];
+
+  @AfterInsert()
+  async afterInsert() {
+    console.log('Inserted invoice with id', this.id);
+  }
+
+  @AfterRemove()
+  async afterRemove() {
+    console.log('Removed invoice with id', this.id);
+  }
 }

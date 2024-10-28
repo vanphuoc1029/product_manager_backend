@@ -30,6 +30,11 @@ export class UsersController {
     return await this.userService.createUser(body);
   }
 
+  @Get()
+  async getAllUsers() {
+    return await this.userService.getAllUsers();
+  }
+
   @Get('/?id')
   async getUserById(@Param() id: number) {
     return await this.userService.getUserById(id);
