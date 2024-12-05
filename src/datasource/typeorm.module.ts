@@ -18,6 +18,7 @@ import { DataSource } from 'typeorm';
             password: process.env.DATABASE_PASSWORD,
             database: process.env.DATABASE_NAME,
             synchronize: true,
+            ssl: true,
             entities: [`${__dirname}/../**/**.entity{.ts,.js}`],
           });
           await dataSource.initialize();

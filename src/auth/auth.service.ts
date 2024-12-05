@@ -5,6 +5,11 @@ import {
 } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
+import { CreateUserDto } from 'src/users/dtos/create-user.dto';
+import { randomBytes, scrypt as _scrypt } from 'crypto';
+import { promisify } from 'util';
+
+const scrypt = promisify(_scrypt);
 
 @Injectable()
 export class AuthService {
@@ -13,6 +18,19 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
+  async signUp(body: CreateUserDto) {
+    const user = await this.usersService.findByUsername(body.username);
+    if (user) {
+      throw new UnauthorizedException('User already exists');
+    }
+
+    const salt = randomBytes(8).toString('hex');
+    const hash = (await scrypt(body.password, salt, 32)) as Buffer;
+    body.password = salt + '.' + hash.toString('hex');
+    const newUser = await this.usersService.createUser(body);
+    return newUser;
+  }
+
   async signIn(username: string, password: string) {
     const user = await this.usersService.findByUsername(username);
 
@@ -20,7 +38,9 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
 
-    if (user.password !== password) {
+    const [salt, storedHash] = user.password.split('.');
+    const hash = (await scrypt(password, salt, 32)) as Buffer;
+    if (storedHash !== hash.toString('hex')) {
       throw new UnauthorizedException('Invalid password');
     }
 
@@ -36,10 +56,9 @@ export class AuthService {
       const payload = await this.jwtService.verifyAsync(token, {
         secret: process.env.JWT_SECRET,
       });
-      console.log(payload);
-      return payload;
+      return { isLogged: true, payload };
     } catch (error) {
-      throw new UnauthorizedException('Invalid token');
+      return { isLogged: false, error: 'Invalid token' };
     }
   }
 }

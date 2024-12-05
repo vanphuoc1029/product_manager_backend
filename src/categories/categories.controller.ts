@@ -17,7 +17,7 @@ export class CategoriesController {
   constructor(private categoriesService: CategoriesService) {}
 
   @Post()
-  // @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard)
   async createCategory(@Body() body: CreateCategoryDto) {
     return await this.categoriesService.createCategory(body);
   }

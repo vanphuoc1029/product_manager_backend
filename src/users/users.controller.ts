@@ -2,7 +2,6 @@ import {
   Controller,
   Post,
   Get,
-  Delete,
   Patch,
   Body,
   Param,
@@ -27,19 +26,22 @@ export class UsersController {
 
   @Post()
   async createUser(@Body() body: CreateUserDto) {
-    return await this.userService.createUser(body);
+    return await this.authService.signUp(body);
   }
 
+  @UseGuards(AuthGuard)
   @Get()
   async getAllUsers() {
     return await this.userService.getAllUsers();
   }
 
+  @UseGuards(AuthGuard)
   @Get('/?id')
   async getUserById(@Param() id: number) {
     return await this.userService.getUserById(id);
   }
 
+  @UseGuards(AuthGuard)
   @Patch('/:id')
   async updateUser(@Param() id: number, @Body() body: CreateUserDto) {
     return await this.userService.updateUser(id, body);
@@ -51,16 +53,16 @@ export class UsersController {
     return await this.authService.signIn(username, password);
   }
 
-  @Get('/getMyUser')
   @UseGuards(AuthGuard)
+  @Get('/getMyUser')
   async isLogged(@Headers() header) {
     const token = header.authorization.split(' ')[1];
     try {
-      const payload = await this.authService.isLogged(token);
+      const { payload } = await this.authService.isLogged(token);
       const user = await this.userService.getUserById(payload.sub);
       return user;
     } catch (error) {
-      throw new UnauthorizedException('Invalid token');
+      return null;
     }
   }
 }
